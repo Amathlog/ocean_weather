@@ -5,14 +5,14 @@ class GLFWwindow;
 namespace OceanWeather {
 
 class Window {
-   public:
+public:
     Window(const char* name, unsigned width, unsigned height);
     ~Window();
 
     void Update();
     bool ShouldClose();
 
-   private:
+private:
     GLFWwindow* m_window = nullptr;
 };
-}  // namespace OceanWeather
+} // namespace OceanWeather

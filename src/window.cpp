@@ -1,5 +1,7 @@
 #include <window.h>
+
 #include <glad/glad.h>
+
 #include <GLFW/glfw3.h>
 
 #include <iostream>
@@ -8,14 +10,14 @@ namespace {
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
-}  // namespace
+} // namespace
 
 namespace OceanWeather {
 
 Window::Window(const char* name, unsigned width, unsigned height) {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     m_window = glfwCreateWindow(width, height, name, nullptr, nullptr);
@@ -59,4 +61,4 @@ void Window::Update() {
 bool Window::ShouldClose() {
     return m_window ? glfwWindowShouldClose(m_window) : true;
 }
-}  // namespace OceanWeather
+} // namespace OceanWeather
