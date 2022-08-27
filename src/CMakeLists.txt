@@ -32,6 +32,12 @@ file (GLOB IMGUI_SRC
 add_library(ImGui STATIC ${IMGUI_SRC})
 set_target_properties(ImGui PROPERTIES FOLDER "external")
 
+# FFTW3
+find_package(PkgConfig REQUIRED)
+pkg_search_module(FFTW REQUIRED fftw3 IMPORTED_TARGET)
+include_directories(PkgConfig::FFTW)
+link_libraries(PkgConfig::FFTW)
+
 include_directories(${OceanWeather_SOURCE_DIR}/include)
 
 file(GLOB_RECURSE EXE_SRC
@@ -41,5 +47,5 @@ file(GLOB_RECURSE EXE_SRC
 )
 
 add_executable(OceanWeather ${EXE_SRC})
-target_link_libraries(OceanWeather ${OPENGL_LIBRARIES} glfw ${CMAKE_DL_LIBS} ImGui)
+target_link_libraries(OceanWeather ${OPENGL_LIBRARIES} glfw ${CMAKE_DL_LIBS} ImGui PkgConfig::FFTW)
 set_target_properties(OceanWeather PROPERTIES FOLDER "OceanWeather")
