@@ -36,10 +36,26 @@ add_library(ImGui STATIC ${IMGUI_SRC})
 set_target_properties(ImGui PROPERTIES FOLDER "external")
 
 # FFTW3
-find_package(PkgConfig REQUIRED)
-pkg_search_module(FFTW REQUIRED fftw3 IMPORTED_TARGET)
-include_directories(PkgConfig::FFTW)
-link_libraries(PkgConfig::FFTW)
+if(WIN32)
+    option (BUILD_TESTS "Build tests" ON)
+    option (ENABLE_AVX "Compile with AVX instruction set support" OFF)
+    option (ENABLE_AVX2 "Compile with AVX2 instruction set support" OFF)
+
+    set(BUILD_TESTS OFF)
+    set(ENABLE_AVX ON)
+    set(ENABLE_AVX2 ON)
+
+    set(FFTW3_DIR "${OceanWeather_SOURCE_DIR}/external/fftw3")
+    add_subdirectory("${FFTW3_DIR}" fftw3)
+    include_directories("${FFTW3_DIR}/api")
+    set(FFTW_LIB fftw3)
+else(WIN32)
+    find_package(PkgConfig REQUIRED)
+    pkg_search_module(FFTW REQUIRED fftw3 IMPORTED_TARGET)
+    include_directories(PkgConfig::FFTW)
+    link_libraries(PkgConfig::FFTW)
+    set(FFTW_LIB PkgConfig::FFTW)
+endif(WIN32)
 
 include_directories(${OceanWeather_SOURCE_DIR}/include)
 
@@ -50,5 +66,5 @@ file(GLOB_RECURSE EXE_SRC
 )
 
 add_executable(OceanWeather ${EXE_SRC})
-target_link_libraries(OceanWeather ${OPENGL_LIBRARIES} glfw ${CMAKE_DL_LIBS} ImGui PkgConfig::FFTW)
+target_link_libraries(OceanWeather ${OPENGL_LIBRARIES} glfw ${CMAKE_DL_LIBS} ImGui ${FFTW_LIB})
 set_target_properties(OceanWeather PROPERTIES FOLDER "OceanWeather")
