@@ -34,5 +34,6 @@ include(cmake/glfw.cmake)
 include(cmake/glad.cmake)
 include(cmake/imgui.cmake)
 include(cmake/fftw3.cmake)
+include(cmake/cimg.cmake)
 
 add_subdirectory("src")

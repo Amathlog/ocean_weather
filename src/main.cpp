@@ -21,7 +21,9 @@ void TestFFT() {
 }
 
 int main(int, char**) {
-    OceanWeather::Window window("Ocean Weather", 640, 480);
+    using namespace OceanWeather;
+
+    Window window("Ocean Weather", 640, 480);
     if (!window) return 1;
 
     while (!window.ShouldClose()) {
