@@ -12,6 +12,8 @@ public:
     void Update();
     bool ShouldClose();
 
+    explicit operator bool() const { return m_window != nullptr; }
+
 private:
     GLFWwindow* m_window = nullptr;
 };

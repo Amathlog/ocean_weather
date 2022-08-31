@@ -20,8 +20,9 @@ void TestFFT() {
     fftw_free(out);
 }
 
-int main(int argc, char** argv) {
-    OceanWeather::Window window("OceanWather", 640, 480);
+int main(int, char**) {
+    OceanWeather::Window window("Ocean Weather", 640, 480);
+    if (!window) return 1;
 
     while (!window.ShouldClose()) {
         window.Update();
