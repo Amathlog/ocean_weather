@@ -1,6 +1,7 @@
 #include <window.h>
 
 #include <camera.h>
+#include <fileutils.h>
 #include <mesh.h>
 #include <skybox.h>
 
@@ -126,10 +127,9 @@ Window::Impl::Impl(const char* name, unsigned width, unsigned height) {
     m_skybox = std::make_unique<SkyBox>("yokohama2");
     m_skybox->setupOpenGL();
 
-    m_mesh = Mesh::loadObj(
-        "/home/beauchc/dev/ocean_weather/assets/models/teapot.obj");
+    m_mesh = Mesh::loadObj(FileUtils::getRelativeRoot() +
+                           "assets/models/teapot.obj");
     m_mesh->setupOpenGL();
-
 
     // 3. Enable Depth Testing
     glEnable(GL_DEPTH_TEST);
@@ -153,8 +153,8 @@ void Window::Impl::Update() {
     glfwPollEvents();
 
     auto curTime = glfwGetTime();
-    auto dt      = static_cast<float>(curTime - lastTime);
-    lastTime     = curTime;
+    // auto dt      = static_cast<float>(curTime - lastTime);
+    lastTime = curTime;
 
     glm::dvec2 curCursor;
     glfwGetCursorPos(m_window, &curCursor.x, &curCursor.y);

@@ -3,6 +3,7 @@ function(init_glfw)
     set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
     set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 
     set(GLFW_DIR "${CMAKE_SOURCE_DIR}/external/glfw")
     add_subdirectory("${GLFW_DIR}" glfw)

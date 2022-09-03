@@ -1,8 +1,8 @@
 #include <fileutils.h>
 
 #include <fstream>
-#include <sstream>
 #include <optional>
+#include <sstream>
 
 namespace OceanWeather {
 
@@ -16,4 +16,7 @@ std::optional<std::string> FileUtils::readText(std::string_view filename) {
     buffer << file.rdbuf();
     return buffer.str();
 }
-}
+
+std::string FileUtils::getRelativeRoot() { return "../../"; }
+
+} // namespace OceanWeather

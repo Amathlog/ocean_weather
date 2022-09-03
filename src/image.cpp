@@ -1,10 +1,32 @@
 #include <image.h>
 
-#include <CImg.h>
+#include <jpeglib.h>
 
+#include <setjmp.h>
+#include <fstream>
 #include <iostream>
 
 namespace OceanWeather {
+
+// Boilerplate code for Jpeg error handling
+struct JpegErrorManager {
+    jpeg_error_mgr pub;
+    jmp_buf        setjmpBuffer;
+};
+
+using JpegErrorManagerPtr = JpegErrorManager*;
+
+void JpegErrorExit(j_common_ptr cinfo) {
+    /* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
+    JpegErrorManagerPtr myerr = (JpegErrorManagerPtr)cinfo->err;
+
+    /* Always display the message. */
+    /* We could postpone this until after returning, if we chose. */
+    (*cinfo->err->output_message)(cinfo);
+
+    /* Return control to the setjmp point */
+    longjmp(myerr->setjmpBuffer, 1);
+}
 
 Image::Image(std::string_view dirname, std::string_view filename) {
     std::string filepath;
@@ -13,27 +35,41 @@ Image::Image(std::string_view dirname, std::string_view filename) {
     filepath += '/';
     filepath += filename;
 
-    using namespace cimg_library;
+    struct jpeg_decompress_struct cinfo;
+    struct JpegErrorManager       jerr;
 
-    CImg<unsigned char> src(filepath.c_str());
-    m_width   = src.width();
-    m_height  = src.height();
-    m_data.reserve(m_width * m_height * 3);
+    FILE* file = fopen(filepath.c_str(), "rb");
 
-    for (unsigned i = 0; i < m_width; ++i) {
-        for (unsigned j = 0; j < m_height; ++j) {
-            for (unsigned c = 0; c < 3; ++c) {
-                auto data = src.data(j, i, 0, c);
-                m_data.push_back(*(data+0));
-            }
+    if (file) {
+        cinfo.err           = ::jpeg_std_error(&jerr.pub);
+        jerr.pub.error_exit = JpegErrorExit;
+        if (setjmp(jerr.setjmpBuffer)) {
+            ::jpeg_destroy_decompress(&cinfo);
+            fclose(file);
+            return;
         }
+
+        ::jpeg_create_decompress(&cinfo);
+        ::jpeg_stdio_src(&cinfo, file);
+        ::jpeg_read_header(&cinfo, TRUE);
+        ::jpeg_start_decompress(&cinfo);
+
+        m_height = cinfo.output_height;
+        m_width  = cinfo.output_width;
+
+        int row_stride = m_width * cinfo.output_components;
+        m_data.reserve(m_height * row_stride);
+
+        while (cinfo.output_scanline < m_height) {
+            uint8_t* p = m_data.data() + cinfo.output_scanline * row_stride;
+            ::jpeg_read_scanlines(&cinfo, &p, 1);
+        }
+
+        ::jpeg_finish_decompress(&cinfo);
+        ::jpeg_destroy_decompress(&cinfo);
+
+        fclose(file);
     }
-
-    // auto data = src.data();
-    // m_data.insert(m_data.begin(), data, data + src.size());
-
-    // std::cerr << m_width << ", " << m_height << ", " << src.size() << " vs " << (m_width * m_height * 3) << std::endl;
-    // std::cerr << src.depth() << ", " << src.spectrum() << std::endl;
 }
 
 } // namespace OceanWeather

@@ -1,6 +1,7 @@
 #include <skybox.h>
 
 #include <camera.h>
+#include <fileutils.h>
 #include <image.h>
 #include <shader.h>
 
@@ -146,8 +147,8 @@ void SkyBox::draw(Camera const& camera) {
 
     // 10. Assign the model-world-view-projection matrix data to the uniform
     // location:modelviewProjectionUniformLocation
-    glm::mat4 view = glm::mat4(glm::mat3(camera.getView()));
-    auto matrix = camera.getProjection() * (view * m_model);
+    glm::mat4 view   = glm::mat4(glm::mat3(camera.getView()));
+    auto      matrix = camera.getProjection() * (view * m_model);
     glUniformMatrix4fv(modelViewProjectionUniformLocation, 1, 0, &matrix[0][0]);
 
     // 2. Bind the VAO
@@ -201,15 +202,14 @@ bool SkyBox::setupOpenGL() {
     // Read "Loading data into OpenGL Buffers" if not familiar with loading data
     // using glBufferSubData.
     // http://www.www.haroldserrano.com/blog/loading-vertex-normal-and-uv-data-onto-opengl-buffers
-    constexpr auto size = s_skyVertices.size() * sizeof (s_skyVertices[0]);
+    constexpr auto size = s_skyVertices.size() * sizeof(s_skyVertices[0]);
     glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
 
     // 5a. Load vertex data with glBufferSubData
     glBufferSubData(GL_ARRAY_BUFFER, 0, size, s_skyVertices.data());
 
     // 6. Get the location of the shader attribute called "position"
-    auto positionLocation =
-        glGetAttribLocation(m_program.id(), s_varPosition);
+    auto positionLocation = glGetAttribLocation(m_program.id(), s_varPosition);
 
     // 8. Enable attribute locations
 
@@ -240,17 +240,16 @@ bool SkyBox::setupOpenGL() {
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID[0]);
 
     // 1. load each texture image reference into a vector
-    constexpr std::string_view prefix =
-        "/home/beauchc/dev/ocean_weather/assets/cubemaps/"sv;
+    std::string prefix = FileUtils::getRelativeRoot() + "assets/cubemaps/";
 
     std::array<std::string_view, 6> cubeMapTextures{"posx.jpg"sv, "negx.jpg"sv,
                                                     "posy.jpg"sv, "negy.jpg"sv,
                                                     "posz.jpg"sv, "negz.jpg"sv};
+
     std::string dir;
     dir.reserve(prefix.size() + m_dirname.size() + 1);
     dir += prefix;
     dir += m_dirname;
-    dir += '/';
 
     // 17. Simple For loop to get each image reference
     for (unsigned i = 0; i < cubeMapTextures.size(); i++) {
