@@ -25,6 +25,7 @@ public:
 
     bool     isValid() const { return m_program != 0; }
     explicit operator bool() const { return isValid(); }
+    unsigned id() const { return m_program; }
 
     void use();
 

@@ -7,8 +7,31 @@
 #include <array>
 #include <cassert>
 #include <iostream>
+#include <iomanip>
 
 namespace {
+
+//------------------------------------------------------------------------------
+//
+struct DebugShaderText {
+    DebugShaderText(std::string_view text) : m_text(text) {}
+    std::string_view m_text;
+};
+std::ostream& operator<<(std::ostream& os, DebugShaderText const& text) {
+    constexpr std::string_view header =
+        "0123456789_123456789_123456789_123456789_123456789_123456789_123456789"
+        "_123456789\n";
+    os << "     " << header;
+    // Prints the shader text with line numbers for easier debugging.
+    auto txt = text.m_text;
+    unsigned lineNum = 1;
+    while(!txt.empty()) {
+        auto pos = txt.find('\n');
+        os << std::setw(4) << lineNum++ << ": " << txt.substr(0, pos) << '\n';
+        txt = txt.substr(pos + 1);
+    }
+    return os;
+}
 
 //------------------------------------------------------------------------------
 //
@@ -46,9 +69,8 @@ GLuint createShader(std::string_view shaderText, GLenum shaderType) {
     if (testVal == GL_FALSE) {
         InfoLog infoLog;
         glGetShaderInfoLog(shader, infoLog.size(), NULL, infoLog.data());
-        reportError("Failed to compile shader \n", shaderText, '\n',
-                    "with the following errors:\n",
-                    std::string_view{infoLog.data(), infoLog.size()});
+        reportError("Failed to compile shader \n", DebugShaderText(shaderText),
+                    '\n', "with the following errors:\n", infoLog.data());
         glDeleteShader(shader);
         return S_INVALID_SHADER;
     }
@@ -83,9 +105,9 @@ GLuint createProgram(std::string_view vert, std::string_view frag) {
     if (testVal == GL_FALSE) {
         InfoLog infoLog;
         glGetProgramInfoLog(program, infoLog.size(), NULL, infoLog.data());
-        reportError("Failed to link shaders \n", vert, "\nand\n", frag,
-                    "with the following errors:\n",
-                    std::string_view{infoLog.data(), infoLog.size()});
+        reportError("Failed to link shaders \n", DebugShaderText(vert),
+                    "\nand\n", DebugShaderText(frag),
+                    "with the following errors:\n", infoLog.data());
         glDeleteProgram(program);
         program = S_INVALID_PROGRAM;
     }

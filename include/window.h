@@ -1,8 +1,11 @@
 #pragma once
 
-struct GLFWwindow;
+#include <memory>
 
 namespace OceanWeather {
+
+class SkyBox;
+class Camera;
 
 class Window {
 public:
@@ -12,9 +15,10 @@ public:
     void Update();
     bool ShouldClose();
 
-    explicit operator bool() const { return m_window != nullptr; }
+    explicit operator bool() const { return m_impl != nullptr; }
 
 private:
-    GLFWwindow* m_window = nullptr;
+    class Impl;
+    std::unique_ptr<Impl> m_impl;
 };
 } // namespace OceanWeather
