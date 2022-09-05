@@ -3,6 +3,7 @@
 #include <FreeImage.h>
 
 #include <setjmp.h>
+#include <cstring>
 #include <iostream>
 
 namespace OceanWeather {
