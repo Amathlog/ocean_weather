@@ -75,7 +75,7 @@ void Window::Impl::scroll_callback(GLFWwindow* window, double, double yoffset) {
     auto impl = static_cast<Impl*>(glfwGetWindowUserPointer(window));
     assert(impl);
     Camera& camera = *impl->m_camera;
-    camera.addDistance(-yoffset);
+    camera.addDistance(-(float)yoffset);
 }
 
 //------------------------------------------------------------------------------

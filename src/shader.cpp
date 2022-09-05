@@ -68,7 +68,7 @@ GLuint createShader(std::string_view shaderText, GLenum shaderType) {
     glGetShaderiv(shader, GL_COMPILE_STATUS, &testVal);
     if (testVal == GL_FALSE) {
         InfoLog infoLog;
-        glGetShaderInfoLog(shader, infoLog.size(), NULL, infoLog.data());
+        glGetShaderInfoLog(shader, (GLsizei)infoLog.size(), NULL, infoLog.data());
         reportError("Failed to compile shader \n", DebugShaderText(shaderText),
                     '\n', "with the following errors:\n", infoLog.data());
         glDeleteShader(shader);
@@ -104,7 +104,8 @@ GLuint createProgram(std::string_view vert, std::string_view frag) {
     glGetProgramiv(program, GL_LINK_STATUS, &testVal);
     if (testVal == GL_FALSE) {
         InfoLog infoLog;
-        glGetProgramInfoLog(program, infoLog.size(), NULL, infoLog.data());
+        glGetProgramInfoLog(program, (GLsizei)infoLog.size(), NULL,
+                            infoLog.data());
         reportError("Failed to link shaders \n", DebugShaderText(vert),
                     "\nand\n", DebugShaderText(frag),
                     "with the following errors:\n", infoLog.data());

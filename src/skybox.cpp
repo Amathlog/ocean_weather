@@ -258,8 +258,9 @@ bool SkyBox::setupOpenGL() {
         if (image) {
             // 17c. load the image data into the current bound texture buffer
             // cubeMapTarget[] contains the cube map targets
+            // Note: Images are loaded as BGR, not RGB
             glTexImage2D(s_cubeMapTarget[i], 0, GL_RGB, image.width(),
-                         image.height(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+                         image.height(), 0, GL_BGR, GL_UNSIGNED_BYTE,
                          image.data());
         }
     }

@@ -1,10 +1,11 @@
 #include <fftw3.h>
 #include <window.h>
+#include <FreeImage.h>
 
 #include <iostream>
 
 void TestFFT() {
-    size_t N = 10;
+    int N = 10;
 
     fftw_complex *in, *out;
     fftw_plan     p;
@@ -20,8 +21,28 @@ void TestFFT() {
     fftw_free(out);
 }
 
+// Boilerplate code for error handling
+/**
+ *   FreeImage error handler
+ *   @param fif Format / Plugin responsible for the error
+ *   @param message Error message
+ */
+void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char* message) {
+    std::cout << std::endl << "*** ";
+    if (fif != FIF_UNKNOWN) {
+        std::cout << FreeImage_GetFormatFromFIF(fif) << " Format" << std::endl;
+    }
+    std::cout << message << " ***" << std::endl;
+}
+
 int main(int, char**) {
     using namespace OceanWeather;
+
+    FreeImage_Initialise();
+
+    FreeImage_SetOutputMessage(FreeImageErrorHandler);
+
+    std::cout << "FreeImage version: " << FreeImage_GetVersion() << std::endl;
 
     Window window("Ocean Weather", 640, 480);
     if (!window) return 1;
@@ -29,5 +50,7 @@ int main(int, char**) {
     while (!window.ShouldClose()) {
         window.Update();
     }
+
+    FreeImage_DeInitialise();
     return 0;
 }

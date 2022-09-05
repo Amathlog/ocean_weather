@@ -14,6 +14,10 @@ function(init_imgui)
     target_include_directories(ImGui PUBLIC "${IMGUI_DIR}")
     target_include_directories(ImGui PRIVATE "${IMGUI_DIR}/backends")
 
+    if (WIN32)
+        target_compile_options(ImGui PRIVATE /W0)
+    endif(WIN32)
+
 endfunction()
 
 init_imgui()

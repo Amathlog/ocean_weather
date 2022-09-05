@@ -79,7 +79,7 @@ std::unique_ptr<Mesh> Mesh::loadObj(std::string_view path) {
             int ids[3];
             iss >> ids[0] >> ids[1] >> ids[2];
             for (auto id : ids) {
-                if (id < 0) id = mesh.m_vertices.size() + id + 1;
+                if (id < 0) id = (int)mesh.m_vertices.size() + id + 1;
                 id -= 1;
                 mesh.m_indices.push_back(static_cast<unsigned>(id));
             }
@@ -103,7 +103,8 @@ void Mesh::draw(Camera const& camera) {
     glBindVertexArray(m_vao);
 
     // 7. Start the rendering process
-    glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, (GLsizei)m_indices.size(), GL_UNSIGNED_INT,
+                   nullptr);
 
     // 9. Disable the VAO
     glBindVertexArray(0);
@@ -122,12 +123,12 @@ void Mesh::setupOpenGL() {
     glGenBuffers(1, &m_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 
-    unsigned vSizeBytes = m_vertices.size() * sizeof(m_vertices[0]);
+    unsigned vSizeBytes = (unsigned)(m_vertices.size() * sizeof(m_vertices[0]));
     glBufferData(GL_ARRAY_BUFFER, vSizeBytes, NULL, GL_STATIC_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, vSizeBytes, m_vertices.data());
 
     // 11. Create a new buffer for the indices
-    unsigned iSizeBytes = m_indices.size() * sizeof(m_indices[0]);
+    unsigned iSizeBytes = (unsigned)(m_indices.size() * sizeof(m_indices[0]));
     GLuint             elementBuffer;
     glGenBuffers(1, &elementBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);

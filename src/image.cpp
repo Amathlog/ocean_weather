@@ -1,32 +1,36 @@
 #include <image.h>
 
-#include <jpeglib.h>
+#include <FreeImage.h>
 
 #include <setjmp.h>
-#include <fstream>
 #include <iostream>
 
 namespace OceanWeather {
 
-// Boilerplate code for Jpeg error handling
-struct JpegErrorManager {
-    jpeg_error_mgr pub;
-    jmp_buf        setjmpBuffer;
-};
+// Boilerplate code for IO reading
 
-using JpegErrorManagerPtr = JpegErrorManager*;
-
-void JpegErrorExit(j_common_ptr cinfo) {
-    /* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
-    JpegErrorManagerPtr myerr = (JpegErrorManagerPtr)cinfo->err;
-
-    /* Always display the message. */
-    /* We could postpone this until after returning, if we chose. */
-    (*cinfo->err->output_message)(cinfo);
-
-    /* Return control to the setjmp point */
-    longjmp(myerr->setjmpBuffer, 1);
+/////////////////////////////////////////////////////////////////////
+unsigned myReadProc(void*     buffer,
+                    unsigned  size,
+                    unsigned  count,
+                    fi_handle handle) {
+    return (unsigned)fread(buffer, size, count, (FILE*)handle);
 }
+
+unsigned myWriteProc(void*     buffer,
+                     unsigned  size,
+                     unsigned  count,
+                     fi_handle handle) {
+    return (unsigned)fwrite(buffer, size, count, (FILE*)handle);
+}
+
+int mySeekProc(fi_handle handle, long offset, int origin) {
+    return fseek((FILE*)handle, offset, origin);
+}
+
+long myTellProc(fi_handle handle) { return ftell((FILE*)handle); }
+
+/////////////////////////////////////////////////////////////////////
 
 Image::Image(std::string_view dirname, std::string_view filename) {
     std::string filepath;
@@ -35,38 +39,48 @@ Image::Image(std::string_view dirname, std::string_view filename) {
     filepath += '/';
     filepath += filename;
 
-    struct jpeg_decompress_struct cinfo;
-    struct JpegErrorManager       jerr;
+    FreeImageIO io{};
 
+    io.read_proc  = myReadProc;
+    io.write_proc = myWriteProc;
+    io.seek_proc  = mySeekProc;
+    io.tell_proc  = myTellProc;
+
+#ifndef _WIN32
     FILE* file = fopen(filepath.c_str(), "rb");
+#else
+    FILE* file = nullptr;
+    fopen_s(&file, filepath.c_str(), "rb");
+#endif // _WIN32
 
     if (file) {
-        cinfo.err           = ::jpeg_std_error(&jerr.pub);
-        jerr.pub.error_exit = JpegErrorExit;
-        if (setjmp(jerr.setjmpBuffer)) {
-            ::jpeg_destroy_decompress(&cinfo);
-            fclose(file);
-            return;
+        // Find the buffer format
+        FREE_IMAGE_FORMAT fif =
+            FreeImage_GetFileTypeFromHandle(&io, (fi_handle)file, 0);
+
+        if (fif != FIF_UNKNOWN) {
+            // Load from the file handle
+            FIBITMAP* dib =
+                FreeImage_LoadFromHandle(fif, &io, (fi_handle)file, 0);
+
+            if (dib) {
+                m_width                = FreeImage_GetWidth(dib);
+                m_height               = FreeImage_GetHeight(dib);
+                unsigned numComponents = FreeImage_GetBPP(dib) >> 3;
+
+                // For some reason, it is flipped vertically...
+                // Undo it.
+                FreeImage_FlipVertical(dib);
+
+                BYTE* imageData = FreeImage_GetBits(dib);
+
+                m_data.resize(m_width * m_height * numComponents);
+
+                std::memcpy(m_data.data(), imageData, m_data.size());
+
+                FreeImage_Unload(dib);
+            }
         }
-
-        ::jpeg_create_decompress(&cinfo);
-        ::jpeg_stdio_src(&cinfo, file);
-        ::jpeg_read_header(&cinfo, TRUE);
-        ::jpeg_start_decompress(&cinfo);
-
-        m_height = cinfo.output_height;
-        m_width  = cinfo.output_width;
-
-        int row_stride = m_width * cinfo.output_components;
-        m_data.reserve(m_height * row_stride);
-
-        while (cinfo.output_scanline < m_height) {
-            uint8_t* p = m_data.data() + cinfo.output_scanline * row_stride;
-            ::jpeg_read_scanlines(&cinfo, &p, 1);
-        }
-
-        ::jpeg_finish_decompress(&cinfo);
-        ::jpeg_destroy_decompress(&cinfo);
 
         fclose(file);
     }
