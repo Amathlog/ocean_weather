@@ -588,6 +588,8 @@ function(init_freeimage)
     if (WIN32)
         target_compile_options(FreeImage PRIVATE /EHsc /W3 /wd4305 /wd4267 /wd4244 /wd4334 /wd4018 /wd4311 /wd4302 /wd4297 /wd4996 /wd4804 /wd4101 /wd4146 /wd4806)
         target_compile_definitions(FreeImage PRIVATE -DWIN32 -D_CRT_SECURE_NO_WARNINGS)
+    else (WIN32)
+        target_compile_options(FreeImage PRIVATE -w)
     endif(WIN32)
 
 endfunction()
